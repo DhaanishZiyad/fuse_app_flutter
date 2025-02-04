@@ -24,7 +24,8 @@ class _HomeState extends State<Home> {
 
   void fetchProducts() async {
     try {
-      List<Map<String, dynamic>> fetchedProducts = await ApiService.fetchProducts();
+      List<Map<String, dynamic>> fetchedProducts =
+          await ApiService.fetchProducts();
       setState(() {
         products = fetchedProducts;
         isLoading = false;
@@ -60,7 +61,9 @@ class _HomeState extends State<Home> {
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                     child: Row(
                       children: [
-                        Text('Our Products', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                        Text('Our Products',
+                            style: TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -84,15 +87,21 @@ class _HomeState extends State<Home> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ProductDetails(productId: product['id']),
+                                builder: (context) =>
+                                    ProductDetails(productId: product['id']),
                               ),
                             );
                           },
                           child: ProductCard(
                             name: product['name'] ?? 'Unknown Product',
-                            imagePath: "https://fuse-jetstream-production.up.railway.app/storage/${product['image_path']}",
-                            oldPrice: double.tryParse(product['old_price'].toString()) ?? 0.0,
-                            currentPrice: double.tryParse(product['current_price'].toString()) ?? 0.0,
+                            imagePath:
+                                "https://fuse-jetstream-production.up.railway.app/storage/${product['image_path']}",
+                            oldPrice: double.tryParse(
+                                    product['old_price'].toString()) ??
+                                0.0,
+                            currentPrice: double.tryParse(
+                                    product['current_price'].toString()) ??
+                                0.0,
                           ),
                         );
                       },

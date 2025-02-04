@@ -39,23 +39,49 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product Image
-            AspectRatio(
-              aspectRatio: 1 / 1, // Ensures the image maintains a 1:1 ratio
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  imagePath, // Full URL for the image
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(
-                      Icons.image_not_supported,
-                      size: 50,
-                      color: Colors.grey,
-                    );
-                  },
+            // Product Image with Heart Icon
+            Stack(
+              children: [
+                AspectRatio(
+                  aspectRatio: 1 / 1, // Ensures the image maintains a 1:1 ratio
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      imagePath, // Full URL for the image
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.image_not_supported,
+                          size: 50,
+                          color: Colors.grey,
+                        );
+                      },
+                    ),
+                  ),
                 ),
-              ),
+                // Heart Icon Positioned at Bottom Right
+                Positioned(
+                  bottom: 8,
+                  right: 8,
+                  child: InkWell(
+                    onTap: () {
+                      // Placeholder action, functionality can be added later
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.8),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.favorite_border,
+                        color: Colors.red,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 10),
 

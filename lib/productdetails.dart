@@ -13,6 +13,8 @@ class ProductDetails extends StatefulWidget {
 class _ProductDetailsState extends State<ProductDetails> {
   bool isLoading = true;
   Map<String, dynamic>? productDetails;
+  String selectedSize = 'S'; // Default size selection
+  int quantity = 1; // Default quantity
 
   @override
   void initState() {
@@ -36,9 +38,21 @@ class _ProductDetailsState extends State<ProductDetails> {
     }
   }
 
+  void addToCart() async {
+    try {
+      await ApiService.addToCart(widget.productId, selectedSize, quantity);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Added to cart successfully')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add to cart: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Check if data is still loading
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -47,159 +61,99 @@ class _ProductDetailsState extends State<ProductDetails> {
       return const Center(child: Text("Product not found"));
     }
 
-    // Static data from API response
     String name = productDetails?['name'] ?? 'Unknown Product';
     String imagePath =
         "https://fuse-jetstream-production.up.railway.app/storage/${productDetails?['image_path'] ?? 'default_image.jpg'}";
-    double oldPrice = productDetails?['old_price'] != null
-        ? double.tryParse(productDetails!['old_price'].toString()) ?? 0.0
-        : 0.0;
-
-    double currentPrice = productDetails?['current_price'] != null
-        ? double.tryParse(productDetails!['current_price'].toString()) ?? 0.0
-        : 0.0;
-
-    // Detect orientation
-    bool isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+    double oldPrice =
+        double.tryParse(productDetails!['old_price'].toString()) ?? 0.0;
+    double currentPrice =
+        double.tryParse(productDetails!['current_price'].toString()) ?? 0.0;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(name),
+        centerTitle: true,
+        title: Image.asset('images/logo_black.png', height: 32),
+        backgroundColor: Colors.teal,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
-        child: isLandscape
-            ? Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Image aligned to the left
-                  Expanded(
-                    flex: 1,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 20.0),
-                      child: Image.network(
-                        imagePath,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                  // Text and button aligned to the left
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          name,
-                          style: const TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'LKR. ${oldPrice.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            decoration: TextDecoration.lineThrough,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          'LKR. ${currentPrice.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Add to cart action
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 12),
-                          ),
-                          child: const Text('Add to Cart'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 20),
-                    child: Image.network(imagePath),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                    child: Text(
-                      name,
-                      style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                    child: Text(
-                      'LKR. ${oldPrice.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        decoration: TextDecoration.lineThrough,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                    child: Text(
-                      'LKR. ${currentPrice.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            // Add to cart action
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 12),
-                          ),
-                          child: const Text(
-                            'Add to Cart',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.network(imagePath, fit: BoxFit.contain),
+            const SizedBox(height: 20),
+            Text(name,
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Text(
+              'LKR. ${oldPrice.toStringAsFixed(2)}',
+              style: const TextStyle(
+                  decoration: TextDecoration.lineThrough, color: Colors.grey),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              'LKR. ${currentPrice.toStringAsFixed(2)}',
+              style: const TextStyle(
+                  color: Colors.red, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+
+            // Size Selection Dropdown
+            const Text("Select Size:"),
+            DropdownButton<String>(
+              value: selectedSize.isNotEmpty
+                  ? selectedSize
+                  : 'S', // Ensure it never assigns null
+              items: ['S', 'M', 'L', 'XL', '2XL']
+                  .map((size) =>
+                      DropdownMenuItem(value: size, child: Text(size)))
+                  .toList(),
+              onChanged: (newSize) {
+                setState(() {
+                  selectedSize = newSize!;
+                });
+              },
+            ),
+            const SizedBox(height: 20),
+
+            // Quantity Selector
+            Row(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    if (quantity > 1) {
+                      setState(() => quantity--);
+                    }
+                  },
+                  icon: const Icon(Icons.remove),
+                ),
+                Text(quantity.toString(), style: const TextStyle(fontSize: 18)),
+                IconButton(
+                  onPressed: () {
+                    setState(() => quantity++);
+                  },
+                  icon: const Icon(Icons.add),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Add to Cart Button
+            ElevatedButton(
+              onPressed: addToCart,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
+              child: const Text('Add to Cart',
+                  style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
   }

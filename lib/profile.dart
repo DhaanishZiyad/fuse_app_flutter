@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fuse_app/login.dart';
+import 'package:fuse_app/services/api_service.dart';
 
 class Profile extends StatelessWidget {
   static const String id = "Profile";
@@ -16,13 +17,9 @@ class Profile extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: Row(
                 children: [
-                  Text(
-                      'Profile',
-                      style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold
-                      )
-                  ),
+                  Text('Profile',
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -45,10 +42,7 @@ class Profile extends StatelessWidget {
                 children: [
                   Text(
                     "Ismail Dhaanish",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   )
                 ],
               ),
@@ -60,10 +54,7 @@ class Profile extends StatelessWidget {
                 children: [
                   Text(
                     "Address",
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -74,9 +65,7 @@ class Profile extends StatelessWidget {
                 children: [
                   Text(
                     "No 8,\nSigma Lane,\nKalubowila,\nColombo",
-                    style: TextStyle(
-                        fontSize: 16
-                    ),
+                    style: TextStyle(fontSize: 16),
                   )
                 ],
               ),
@@ -87,10 +76,7 @@ class Profile extends StatelessWidget {
                 children: [
                   Text(
                     "Contact No.",
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   )
                 ],
               ),
@@ -101,9 +87,7 @@ class Profile extends StatelessWidget {
                 children: [
                   Text(
                     "+960 876 7867",
-                    style: TextStyle(
-                        fontSize: 16
-                    ),
+                    style: TextStyle(fontSize: 16),
                   )
                 ],
               ),
@@ -114,10 +98,7 @@ class Profile extends StatelessWidget {
                 children: [
                   Text(
                     "Email",
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   )
                 ],
               ),
@@ -128,9 +109,7 @@ class Profile extends StatelessWidget {
                 children: [
                   Text(
                     "sigmasrise@gmail.com",
-                    style: TextStyle(
-                        fontSize: 16
-                    ),
+                    style: TextStyle(fontSize: 16),
                   )
                 ],
               ),
@@ -153,20 +132,14 @@ class Profile extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal, // Button background color (use `backgroundColor` instead of `primary`)
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0), // Rounded corners
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), // Padding inside the button
-                    ),
-                    child: const Text(
-                      'Log Out',
-                      style: TextStyle(color: Colors.white), // Text color
-                    ),
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, Login.id);
+                    onPressed: () async {
+                      await ApiService.logout();
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const Login()),
+                      );
                     },
+                    child: const Text('Logout'),
                   ),
                 ],
               ),

@@ -53,7 +53,7 @@ class _MyAppState extends State<MyApp> {
       themeMode: _themeMode, // Apply the theme mode here
       theme: ThemeData.light(), // Light theme
       darkTheme: ThemeData.dark(), // Dark theme
-      initialRoute: AppLayout.id,
+      initialRoute: Login.id,
       routes: {
         AppLayout.id: (context) => AppLayout(onToggleTheme: _toggleTheme), // Pass _toggleTheme to AppLayout
         Login.id: (context) => const Login(),

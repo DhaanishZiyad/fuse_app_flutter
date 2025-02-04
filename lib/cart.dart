@@ -1,113 +1,190 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart'; // Import your API service
 
-class Cart extends StatelessWidget {
-  // Simulated cart items (these can be hardcoded for illustration purposes)
-  final List<Map<String, dynamic>> cartItems = [
-    {
-      'name': 'FUSE X CSK',
-      'imagePath': 'images/test_post.png',
-      'currentPrice': 2950.00,
-      'quantity': 1,
-    },
-    {
-      'name': 'FUSE X BMS',
-      'imagePath': 'images/test_post2.png',
-      'currentPrice': 2950.00,
-      'quantity': 2,
-    },
-  ];
+class Cart extends StatefulWidget {
+  const Cart({super.key});
 
-  Cart({super.key});
+  @override
+  _CartState createState() => _CartState();
+}
+
+class _CartState extends State<Cart> {
+  List<dynamic> cartItems = [];
+  double subtotal = 0.0;
+  double shipping = 0.0;
+  double total = 0.0;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCartItems();
+  }
+
+  Future<void> fetchCartItems() async {
+    try {
+      final cartData = await ApiService.fetchCart();
+
+      print("Cart Data from API: $cartData"); // Debugging
+
+      setState(() {
+        cartItems = cartData['cart_items'] ?? [];
+
+        // Ensure numeric values are properly converted to double
+        subtotal = (cartData['subtotal'] is int)
+            ? (cartData['subtotal'] as int).toDouble()
+            : double.tryParse(cartData['subtotal'].toString()) ?? 0.0;
+
+        shipping = (cartData['shipping'] is int)
+            ? (cartData['shipping'] as int).toDouble()
+            : double.tryParse(cartData['shipping'].toString()) ?? 0.0;
+
+        total = (cartData['total'] is int)
+            ? (cartData['total'] as int).toDouble()
+            : double.tryParse(cartData['total'].toString()) ?? 0.0;
+
+        isLoading = false;
+      });
+
+      print(
+          "Subtotal: $subtotal, Shipping: $shipping, Total: $total"); // Debugging
+    } catch (e) {
+      print("Error fetching cart: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  // Remove a single item from the cart
+  Future<void> removeCartItem(int cartItemId) async {
+    try {
+      await ApiService.removeFromCart(cartItemId);
+      fetchCartItems(); // Refresh cart after removal
+    } catch (e) {
+      print("Error removing item: $e");
+    }
+  }
+
+  // Clear entire cart
+  Future<void> clearCart() async {
+    try {
+      await ApiService.clearCart();
+      fetchCartItems(); // Refresh cart after clearing
+    } catch (e) {
+      print("Error clearing cart: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              // Set a maximum width for each card
-              double cardMaxWidth = 700;
-
-              return Column(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Heading section
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Cart',
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    child: Text(
+                      'Cart',
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                   ),
 
-                  // Cart items section
+                  // Display cart items
                   ...cartItems.map((item) {
                     return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Center(
-                        child: Container(
-                          constraints: BoxConstraints(
-                            maxWidth: cardMaxWidth, // Apply max width for the card
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8.0),
+                      child: Card(
+                        child: ListTile(
+                          leading: Image.network(
+                            item[
+                                'product_image'], // Now it should return a full URL
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
                           ),
-                          child: Card(
-                            child: ListTile(
-                              leading: Image.asset(
-                                item['imagePath'],
-                                width: 50,
-                                height: 50,
-                              ),
-                              title: Text(item['name']),
-                              subtitle: Text('LKR. ${item['currentPrice']}'),
-                              trailing: Text(
+                          title: Text(item['product_name']),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('LKR. ${item['current_price']}'),
+                              Text('Size: ${item['size']}'), // Show item size
+                            ],
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
                                 'QTY: ${item['quantity']}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
                                 ),
                               ),
-                            ),
+                              IconButton(
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () =>
+                                    removeCartItem(item['id']), // Remove item
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     );
-                  }),
+                  }).toList(),
+                  // Cart calculations
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal, // Button background color (use `backgroundColor` instead of `primary`)
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0), // Rounded corners
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    child: Align(
+                      alignment:
+                          Alignment.centerRight, // Align content to the right
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.end, // Align text to the right
+                        children: [
+                          Text('Subtotal: LKR. ${subtotal.toStringAsFixed(2)}'),
+                          Text('Shipping: LKR. ${shipping.toStringAsFixed(2)}'),
+                          Text(
+                            'Total: LKR. ${total.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red,
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), // Padding inside the button
                           ),
-                          child: const Text(
-                            'Check Out',
-                            style: TextStyle(color: Colors.white), // Text color
+                          const SizedBox(height: 20),
+                          // Checkout button (aligned to the right)
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
+                            ),
+                            child: const Text(
+                              'Check Out',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: () {
+                              // Navigate to checkout page
+                            },
                           ),
-                          onPressed: () {
-                            // Add your onPressed action here
-                          },
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-
                 ],
-              );
-            },
-          ),
-        ),
-      ),
+              ),
+            ),
     );
   }
 }

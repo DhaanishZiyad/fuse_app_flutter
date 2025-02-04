@@ -1,131 +1,166 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fuse_app/layout.dart';
-import 'package:fuse_app/signup.dart'; // Import the AppLayout page
+import 'package:fuse_app/signup.dart';
+import 'package:fuse_app/services/api_service.dart';
 
-class Login extends StatelessWidget {
+class Login extends StatefulWidget {
   static const String id = "Login";
 
-  const Login({super.key}); // Define the static 'id' variable
+  const Login({super.key});
+
+  @override
+  _LoginState createState() => _LoginState();
+}
+
+class _LoginState extends State<Login> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  void _handleLogin() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = "Email and password are required";
+      });
+      return;
+    }
+
+    try {
+      String? token = await ApiService.login(email, password);
+      if (token != null) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        int? userId = prefs.getInt('user_id');
+
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AppLayout(
+                onToggleTheme: () {},
+                initialIndex: 1,
+              ),
+            ),
+          );
+        }
+      } else {
+        setState(() {
+          _errorMessage = "Invalid email or password";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = "An error occurred: $e";
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Row(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 "Login",
                 style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),
-              )
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  hintText: "Email",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: "Password",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+              ),
+              if (_errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
+              const SizedBox(height: 20),
+              _isLoading
+                  ? const CircularProgressIndicator()
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: _handleLogin,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.teal,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                          ),
+                          child: const Text(
+                            'Log In',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const Signup(),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.teal,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                          ),
+                          child: const Text(
+                            'Register',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
             ],
           ),
-          const SizedBox(height: 20), // Add some space between the text and text field
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 300, // Adjust width to control the size of the TextField
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: "Username",
-                    border: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8.0),// Default border color
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.teal, width: 2.0), // Border color when enabled but not focused
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.blue, width: 2.0), // Border color when focused
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20), // Add space between the text field and button
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 300, // Adjust width to control the size of the TextField
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: "Password",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: const BorderSide(color: Colors.grey), // Default border color
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: const BorderSide(color: Colors.teal, width: 2.0), // Border color when enabled but not focused
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: const BorderSide(color: Colors.blue, width: 2.0), // Border color when focused
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20), // Add space between the text field and button
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal, // Button background color
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0), // Rounded corners with radius 8
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), // Padding inside the button
-                ),
-                child: const Text(
-                  'Log In',
-                  style: TextStyle(color: Colors.white), // Text color
-                ),
-                onPressed: () {
-                  // Navigate to AppLayout and ensure it's the initial route
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AppLayout(onToggleTheme: () {}, initialIndex: 1),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 20), // Add space between the two buttons
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal, // Button background color
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0), // Rounded corners with radius 8
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), // Padding inside the button
-                ),
-                child: const Text(
-                  'Register',
-                  style: TextStyle(color: Colors.white), // Text color
-                ),
-                onPressed: () {
-                  // Navigate to AppLayout and ensure it's the initial route
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const Signup(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          )
-        ],
+        ),
       ),
     );
   }
