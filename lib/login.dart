@@ -41,17 +41,17 @@ class _LoginState extends State<Login> {
       if (token != null) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         int? userId = prefs.getInt('user_id');
-
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AppLayout(
-                onToggleTheme: () {},
-                initialIndex: 1,
-              ),
-            ),
-          );
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (context) => AppLayout(
+          //       onToggleTheme: () {},
+          //       initialIndex: 1,
+          //     ),
+          //   ),
+          // );
+          Navigator.pushReplacementNamed(context, AppLayout.id);
         }
       } else {
         setState(() {

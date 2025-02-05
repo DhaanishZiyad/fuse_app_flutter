@@ -50,9 +50,11 @@ class _CartState extends State<Cart> {
           "Subtotal: $subtotal, Shipping: $shipping, Total: $total"); // Debugging
     } catch (e) {
       print("Error fetching cart: $e");
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 

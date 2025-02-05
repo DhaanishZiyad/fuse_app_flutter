@@ -1,18 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:fuse_app/services/api_service.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends StatefulWidget {
+  final int productId;
   final String name;
-  final String imagePath; // Expecting a FULL URL now
+  final String imagePath;
   final double oldPrice;
   final double currentPrice;
 
   const ProductCard({
     super.key,
+    required this.productId,
     required this.name,
     required this.imagePath,
     required this.oldPrice,
     required this.currentPrice,
   });
+
+  @override
+  _ProductCardState createState() => _ProductCardState();
+}
+
+class _ProductCardState extends State<ProductCard> {
+  bool isInWishlist = false;
+  int? wishlistId; // Store wishlist ID for removing
+
+  @override
+  void initState() {
+    super.initState();
+    checkWishlistStatus();
+  }
+
+  Future<void> checkWishlistStatus() async {
+    // bool exists = await ApiService.isProductInWishlist(widget.productId);
+    // setState(() => isInWishlist = exists);
+  }
+
+  Future<void> toggleWishlist() async {
+    if (isInWishlist) {
+      if (wishlistId != null) {
+        await ApiService.removeFromWishlist(wishlistId!);
+      }
+      setState(() => isInWishlist = false);
+    } else {
+      await ApiService.addToWishlist(widget.productId);
+      setState(() => isInWishlist = true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,15 +73,14 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product Image with Heart Icon
             Stack(
               children: [
                 AspectRatio(
-                  aspectRatio: 1 / 1, // Ensures the image maintains a 1:1 ratio
+                  aspectRatio: 1 / 1,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.network(
-                      imagePath, // Full URL for the image
+                      widget.imagePath,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return const Icon(
@@ -59,23 +92,20 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Heart Icon Positioned at Bottom Right
                 Positioned(
                   bottom: 8,
                   right: 8,
                   child: InkWell(
-                    onTap: () {
-                      // Placeholder action, functionality can be added later
-                    },
+                    onTap: toggleWishlist,
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.8),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.favorite_border,
-                        color: Colors.red,
+                      child: Icon(
+                        isInWishlist ? Icons.favorite : Icons.favorite_border,
+                        color: isInWishlist ? Colors.red : Colors.grey,
                         size: 20,
                       ),
                     ),
@@ -84,25 +114,22 @@ class ProductCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-
-            // Product Name and Prices
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    name,
-                    maxLines: 1, // Ensures only one line is used
-                    overflow:
-                        TextOverflow.ellipsis, // Adds "..." if text is too long
+                    widget.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    'LKR. ${oldPrice.toStringAsFixed(2)}',
+                    'LKR. ${widget.oldPrice.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.red,
@@ -110,7 +137,7 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'LKR. ${currentPrice.toStringAsFixed(2)}',
+                    'LKR. ${widget.currentPrice.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

@@ -32,9 +32,11 @@ class _HomeState extends State<Home> {
       });
     } catch (e) {
       print("Error fetching products: $e");
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -93,6 +95,7 @@ class _HomeState extends State<Home> {
                             );
                           },
                           child: ProductCard(
+                            productId: product['id'],
                             name: product['name'] ?? 'Unknown Product',
                             imagePath:
                                 "https://fuse-jetstream-production.up.railway.app/storage/${product['image_path']}",

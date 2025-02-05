@@ -210,4 +210,100 @@ class ApiService {
       throw Exception("Error: $e");
     }
   }
+
+  // Fetch wishlist items
+  static Future<List<Map<String, dynamic>>> fetchWishlist() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('auth_token');
+
+      final response = await http.get(
+        Uri.parse("$baseUrl/wishlist"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+      );
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        return data.map((item) => item as Map<String, dynamic>).toList();
+      } else {
+        throw Exception("Failed to load wishlist");
+      }
+    } catch (e) {
+      throw Exception("Error: $e");
+    }
+  }
+
+  // Add a product to the wishlist
+  static Future<void> addToWishlist(int productId) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('auth_token');
+
+      final response = await http.post(
+        Uri.parse("$baseUrl/wishlist"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode({"product_id": productId}),
+      );
+
+      if (response.statusCode != 201) {
+        throw Exception("Failed to add product to wishlist");
+      }
+    } catch (e) {
+      throw Exception("Error: $e");
+    }
+  }
+
+  // Remove a product from the wishlist
+  static Future<void> removeFromWishlist(int wishlistId) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('auth_token');
+
+      final response = await http.delete(
+        Uri.parse("$baseUrl/wishlist/$wishlistId"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception("Failed to remove item from wishlist");
+      }
+    } catch (e) {
+      throw Exception("Error: $e");
+    }
+  }
+
+  // Check if product is in wishlist
+  static Future<bool> isProductInWishlist(int productId) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('auth_token');
+
+      final response = await http.get(
+        Uri.parse("$baseUrl/wishlist"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        List<dynamic> wishlist = jsonDecode(response.body);
+        return wishlist.any((item) => item['id'] == productId);
+      } else {
+        throw Exception("Failed to fetch wishlist");
+      }
+    } catch (e) {
+      print("Error checking wishlist: $e");
+      return false;
+    }
+  }
 }
